@@ -1,13 +1,15 @@
 # -*- coding: UTF-8 -*-
 
 from abc import ABC, abstractmethod
-from typing import IO
+from typing import Union, IO, TextIO, BinaryIO
 
 from .constants import LOCK
 from .core import lock, unlock
 from .exceptions import LockFlagsError
 
 __all__ = ["Handler", "FileLocker"]
+
+Handle = Union[IO, TextIO, BinaryIO]
 
 
 class Handler(ABC):
@@ -16,9 +18,9 @@ class Handler(ABC):
     def __init__(self, *args, **kwargs):
         self._args, self._kwargs = args, kwargs
 
-    def __enter__(self) -> IO:
+    def __enter__(self) -> Handle:
         if not hasattr(self, "_handle"):
-            self._handle: IO = self.acquire(*self._args, **self._kwargs)
+            self._handle: Handle = self.acquire(*self._args, **self._kwargs)
         return self._handle
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -31,17 +33,11 @@ class Handler(ABC):
 
     @abstractmethod
     def acquire(self, *args, **kwargs):
-        raise NotImplementedError(
-            f"Method 'acquire()' was not implemented "
-            f"in child class {self.__class__.__name__}!"
-        )
+        raise NotImplementedError
 
     @abstractmethod
     def release(self, *args, **kwargs):
-        raise NotImplementedError(
-            f"Method 'release()' was not implemented "
-            f"in child class {self.__class__.__name__}!"
-        )
+        raise NotImplementedError
 
 
 class FileLocker(Handler):
@@ -54,7 +50,7 @@ class FileLocker(Handler):
         "r": LOCK.SH,
     }
 
-    def acquire(self, handle: IO, flags: LOCK = None) -> IO:
+    def acquire(self, handle: Handle, flags: LOCK = None) -> Handle:
         """
         Acquire a lock on the given `handle`.
         If `flags` are not provided it will try to guess
@@ -75,12 +71,12 @@ class FileLocker(Handler):
         lock(handle, flags)
         return handle
 
-    def release(self, handle: IO):
+    def release(self, handle: Handle):
         """Unlock the file handle."""
         unlock(handle)
 
     @staticmethod
-    def _get_mode(handle: IO) -> str:
+    def _get_mode(handle: Handle) -> str:
         """Return the handle's operating mode."""
         mode = handle.mode
         return mode.strip("tb+")
