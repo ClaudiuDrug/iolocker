@@ -2,8 +2,9 @@
 
 from enum import IntFlag
 from os import name
+from weakref import WeakValueDictionary
 
-__all__ = ["LOCK"]
+__all__ = ["LOCK", "RLOCKS", "NAME"]
 
 if name.upper() == "NT":
     from msvcrt import LK_UNLCK
@@ -23,6 +24,12 @@ elif name.upper() == "POSIX":
 
 else:
     raise RuntimeError("File locking is defined only for 'NT' and 'POSIX' platforms!")
+
+# container for recursive thread locks:
+RLOCKS: WeakValueDictionary = WeakValueDictionary()
+
+# default name used by thread locks:
+NAME: str = "iolocker"
 
 
 class LOCK(IntFlag):

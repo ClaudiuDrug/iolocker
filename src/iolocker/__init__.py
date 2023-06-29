@@ -3,7 +3,7 @@
 from .constants import LOCK
 from .core import lock, unlock
 from .exceptions import LockException, AlreadyLocked, FileToLarge, LockFlagsError
-from .handlers import Handler, FileLocker
+from .handlers import BaseFileLocker, FileLocker, BaseFileHandler, FileHandler
 
 __all__ = [
     "LOCK",
@@ -13,6 +13,8 @@ __all__ = [
     "AlreadyLocked",
     "FileToLarge",
     "LockFlagsError",
-    "Handler",
+    "BaseFileLocker",
     "FileLocker",
+    "BaseFileHandler",
+    "FileHandler",
 ]
